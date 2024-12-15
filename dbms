@@ -1,0 +1,62 @@
+#!/usr/bin/bash
+echo -e "\n"
+echo "*********** Welcome To Database Managment System ***********"
+
+echo -e ""
+
+if [ -e ~/DBMS/Database ]
+then
+	cd ~/DBMS/Database
+	echo "DBMS is ready"
+
+else
+	mkdir ~/DBMS/Database
+	cd ~/DBMS/Database
+	echo "DBMS is ready"
+fi
+
+
+COLUMNS=1
+exit=true
+while $exit
+do
+
+PS3="Choose an option: "
+	select name in "create database" "remove database" "list database" "connect to a database" "exit"
+	do
+	echo -e "\n"
+		case $name in
+        "create database")
+        read -p "Please enter database name: " dbName
+        if [[ -e $dbname ]] then
+        	echo "Database is already exist"
+        	else
+        	mkdir $dbName
+        	echo "Database is created successfully"
+        fi
+        
+            echo "Creating a database..."
+            mkdir # Placeholder command; replace with specific logic
+        ;;
+		"list database")
+			ls -a
+		;;
+		"remove database")
+		
+		;;
+		"connect to a database")
+		
+		;;
+		"exit")
+		
+		exit=false
+		break
+		;;
+		*)
+		echo UNKNOWN USER
+		esac	
+		
+	done
+
+done
+
