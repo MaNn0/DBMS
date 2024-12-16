@@ -4,16 +4,16 @@ echo "*********** Welcome To Database Managment System ***********"
 
 echo -e ""
 
-if [ -e ~/DBMS/Database ]
-then
-	cd ~/DBMS/Database
-	echo "DBMS is ready"
-
-else
-	mkdir ~/DBMS/Database
-	cd ~/DBMS/Database
-	echo "DBMS is ready"
-fi
+#if [ -e ~/DBMS/Database ]
+#then
+#	cd ~/DBMS/Database
+#	echo "DBMS is ready"
+#
+#else
+#	mkdir ~/DBMS/Database
+#	cd ~/DBMS/Database
+#	echo "DBMS is ready"
+#fi
 
 
 COLUMNS=1
@@ -24,25 +24,29 @@ do
 PS3="Choose an option: "
 	select name in "create database" "remove database" "list database" "connect to a database" "exit"
 	do
-	echo -e "\n"
+	echo 
 		case $name in
         "create database")
         read -p "Please enter database name: " dbName
-        if [[ -e $dbname ]] then
-        	echo "Database is already exist"
+        if [[ -d $dbName ]] then
+        		echo "Database is already exist"
+        		echo
         	else
-        	mkdir $dbName
-        	echo "Database is created successfully"
+        		mkdir $dbName
+        		echo "Database is created successfully"
         fi
-        
-            echo "Creating a database..."
-            mkdir # Placeholder command; replace with specific logic
         ;;
 		"list database")
 			ls -a
 		;;
 		"remove database")
-		
+		read -p "please enter database name to delete: " dbName
+		        if [[ -d $dbName ]] then
+		        rm -r $dbName
+        		echo "Database deleted successfully"
+        	else
+        		echo "There is no database with this name"
+        fi
 		;;
 		"connect to a database")
 		
@@ -59,4 +63,3 @@ PS3="Choose an option: "
 	done
 
 done
-
