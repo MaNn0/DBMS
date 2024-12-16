@@ -1,19 +1,18 @@
 #!/usr/bin/bash
 echo -e "\n"
-echo "*********** Welcome To Database Managment System ***********"
+echo "*********** Welcome To Database Management System ***********"
 
 echo -e ""
 
-#if [ -e ~/DBMS/Database ]
-#then
-#	cd ~/DBMS/Database
-#	echo "DBMS is ready"
-#
-#else
-#	mkdir ~/DBMS/Database
-#	cd ~/DBMS/Database
-#	echo "DBMS is ready"
-#fi
+if [ -e ~/DBMS/Database ]
+then
+	cd ~/DBMS/Database
+	#echo "DBMS is ready"
+else
+	mkdir ~/DBMS/Database
+	cd ~/DBMS/Database
+	#echo "DBMS is ready"
+fi
 
 
 COLUMNS=1
@@ -49,17 +48,16 @@ PS3="Choose an option: "
         fi
 		;;
 		"connect to a database")
-		
+		read -p "Which database you want to access? " dbName
+			cd $dbName
 		;;
 		"exit")
-		
 		exit=false
 		break
 		;;
 		*)
 		echo UNKNOWN USER
 		esac	
-		
 	done
 
 done
