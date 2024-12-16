@@ -35,9 +35,6 @@ PS3="Choose an option: "
         		echo "Database is created successfully"
         fi
         ;;
-		"list database")
-			ls -a
-		;;
 		"remove database")
 		read -p "please enter database name to delete: " dbName
 		        if [[ -d $dbName ]] then
@@ -47,9 +44,21 @@ PS3="Choose an option: "
         		echo "There is no database with this name"
         fi
 		;;
+		"list database")
+		if [[ -z "$(ls -A )" ]] then
+				echo "there is no databases"
+			else
+				ls -A
+		fi
+		;;
 		"connect to a database")
 		read -p "Which database you want to access? " dbName
-			cd $dbName
+			if [[ -d $dbName ]] then
+				cd $dbName
+			else
+				echo
+				echo "please enter an existing data base"
+			fi
 		;;
 		"exit")
 		exit=false
