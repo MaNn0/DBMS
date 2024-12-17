@@ -28,11 +28,13 @@ while $exit; do
    	    ;;
 
         "insert into table")
-            read -p "Enter table name to insert into: " tableName
-            if [[ -e "$tableName" ]]; then
-                 echo "under developing insert"
-            fi
-            ;;
+    		read -p "Enter table name to insert into: " tableName
+    		if [[ -e "$tableName" ]]; then
+     		   ../../insertTable "$tableName" #launch insertTable script
+    		else
+       		 echo "Table '$tableName' does not exist."
+    		fi
+    		;;
         "update table")
             read -p "Enter table name to update: " tableName
             if [[ -e "$tableName" ]]; then
