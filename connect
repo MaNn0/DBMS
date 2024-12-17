@@ -1,0 +1,87 @@
+#!/bin/bash
+
+# Check if the database name is passed as an argument
+if [ -z "$1" ]; then
+    echo "No database name provided."
+    exit 1
+fi
+
+dbName="$1"
+echo "You are now connected to the database: $dbName"
+echo "You can perform operations within this database."
+
+# Keep the user in the database directory
+cd "$dbName"
+
+COLUMNS=1
+exit=true
+while $exit; do
+    PS3="Choose an option in $dbName: "
+    select option in "list tables" "create table" "insert into table" "update table" "select from table" "delete record" "remove table" "exit database"; do
+        case $option in
+        "list tables")
+            echo "Tables in $dbName:"
+            ls -A
+            ;;
+        "create table")
+            read -p "Enter table name to create: " tableName
+            if [[ -e "$tableName" ]]; then
+                echo "Table '$tableName' already exists."
+            else
+                touch "$tableName"
+                echo "Table '$tableName' created successfully."
+            fi
+            ;;
+        "insert into table")
+            read -p "Enter table name to insert into: " tableName
+            if [[ -e "$tableName" ]]; then
+                 echo "under developing insert"
+            fi
+            ;;
+        "update table")
+            read -p "Enter table name to update: " tableName
+            if [[ -e "$tableName" ]]; then
+               echo "under developing update"
+               
+            else
+                echo "Table '$tableName' does not exist."
+            fi
+            ;;
+        "select from table")
+            read -p "Enter table name to select from: " tableName
+            if [[ -e "$tableName" ]]; then
+              echo "under developing select from table"
+            else
+                echo "Table '$tableName' does not exist."
+            fi
+            ;;
+        "delete record")
+            read -p "Enter table name to delete a record from: " tableName
+            if [[ -e "$tableName" ]]; then
+                echo "under developing delete record"
+             
+            else
+                echo "Table '$tableName' does not exist."
+            fi
+            ;;
+        "remove table")
+            read -p "Enter table name to remove: " tableName
+            if [[ -e "$tableName" ]]; then
+                rm "$tableName"
+                echo "Table '$tableName' removed successfully."
+            else
+                echo "Table '$tableName' does not exist."
+            fi
+            ;;
+        "exit database")
+            echo "Exiting database '$dbName' and returning to the main menu."
+            exit=false
+            break
+            ;;
+        *)
+            echo "UNKNOWN OPTION"
+            ;;
+        esac
+    done
+done
+
