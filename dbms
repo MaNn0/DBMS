@@ -1,72 +1,159 @@
 #!/usr/bin/bash
-echo -e "\n"
-echo "*********** Welcome To Database Management System ***********"
+# echo -e "\n"
+# echo "*********** Welcome To Database Management System ***********"
 
-echo -e ""
+# echo -e ""
 
-if [ -e ~/DBMS/Database ]
-then
-	cd ~/DBMS/Database
-	#echo "DBMS is ready"
-else
-	mkdir ~/DBMS/Database
-	cd ~/DBMS/Database
-	#echo "DBMS is ready"
+# if [ -e ~/DBMS/Database ]
+# then
+# 	cd ~/DBMS/Database
+# 	#echo "DBMS is ready"
+# else
+# 	mkdir ~/DBMS/Database
+# 	cd ~/DBMS/Database
+# 	#echo "DBMS is ready"
+# fi
+
+
+# COLUMNS=1
+# exit=true
+# while $exit
+# do
+
+# PS3="Choose an option: "
+# 	select name in "create database" "remove database" "list database" "connect to a database" "exit"
+# 	do
+# 	echo 
+# 		case $name in
+#         "create database")
+#         read -p "Please enter database name: " dbName
+#         if [[ -d $dbName ]] then
+#         		echo "Database is already exist"
+#         		echo
+#         	else
+#         		mkdir $dbName
+#         		echo "Database is created successfully"
+#         fi
+#         ;;
+# 		"remove database")
+# 		read -p "please enter database name to delete: " dbName
+# 		        if [[ -d $dbName ]] then
+# 		        rm -r $dbName
+#         		echo "Database deleted successfully"
+#         	else
+#         		echo "There is no database with this name"
+#         fi
+# 		;;
+# 		"list database")
+# 		if [[ -z "$(ls -A )" ]] then
+# 				echo "there is no databases"
+# 			else
+# 				ls -A
+# 		fi
+# 		;;
+# 		"connect to a database")
+# 		read -p "Which database you want to access? " dbName
+# 			if [[ -d $dbName ]] then
+# 				cd $dbName
+# 			else
+# 				echo
+# 				echo "please enter an existing data base"
+# 			fi
+# 		;;
+# 		"exit")
+# 		exit=false
+# 		break
+# 		;;
+# 		*)
+# 		echo UNKNOWN USER
+# 		esac	
+# 	done
+
+# done
+
+#!/usr/bin/bash
+
+# Welcome message
+zenity --info --title="Database Management System" --text="Welcome to the Database Management System!" --width=400 --height=100
+
+# Ensure DBMS directory exists
+if [[ ! -e ~/DBMS/Database ]]; then
+    mkdir -p ~/DBMS/Database
 fi
+cd ~/DBMS/Database || exit
 
+# Function to show the main menu
+show_menu() {
+    zenity --list --title="Database Management System" \
+        --column="Options" --width=400 --height=300 \
+        "Create Database" \
+        "Remove Database" \
+        "List Databases" \
+        "Connect to Database" \
+        "Exit"
+}
 
-COLUMNS=1
-exit=true
-while $exit
-do
+# Main loop
+while true; do
+    # Capture and clean the selected option
+    choice=$(show_menu | tr -d '\n' | sed 's/^ *//;s/ *$//')  # Trim any extra spaces or newlines
 
-PS3="Choose an option: "
-	select name in "create database" "remove database" "list database" "connect to a database" "exit"
-	do
-	echo 
-		case $name in
-        "create database")
-        read -p "Please enter database name: " dbName
-        if [[ -d $dbName ]] then
-        		echo "Database is already exist"
-        		echo
-        	else
-        		mkdir $dbName
-        		echo "Database is created successfully"
-        fi
-        ;;
-		"remove database")
-		read -p "please enter database name to delete: " dbName
-		        if [[ -d $dbName ]] then
-		        rm -r $dbName
-        		echo "Database deleted successfully"
-        	else
-        		echo "There is no database with this name"
-        fi
-		;;
-		"list database")
-		if [[ -z "$(ls -A )" ]] then
-				echo "there is no databases"
-			else
-				ls -A
-		fi
-		;;
-		"connect to a database")
-		read -p "Which database you want to access? " dbName
-			if [[ -d $dbName ]] then
-				cd $dbName
-			else
-				echo
-				echo "please enter an existing data base"
-			fi
-		;;
-		"exit")
-		exit=false
-		break
-		;;
-		*)
-		echo UNKNOWN USER
-		esac	
-	done
-
+    case "$choice" in
+        "Create Database")
+            dbName=$(zenity --entry --title="Create Database" --text="Enter the database name:")
+            if [[ -z "$dbName" ]]; then
+                zenity --error --text="Database name cannot be empty."
+            elif [[ -d "$dbName" ]]; then
+                zenity --error --text="Database '$dbName' already exists."
+            else
+                mkdir "$dbName"
+                zenity --info --text="Database '$dbName' created successfully."
+            fi
+            ;;
+        
+        "Remove Database")
+            dbName=$(zenity --entry --title="Remove Database" --text="Enter the database name to delete:")
+            if [[ -z "$dbName" ]]; then
+                zenity --error --text="Database name cannot be empty."
+            elif [[ -d "$dbName" ]]; then
+                rm -r "$dbName"
+                zenity --info --text="Database '$dbName' deleted successfully."
+            else
+                zenity --error --text="Database '$dbName' does not exist."
+            fi
+            ;;
+        
+        "List Databases")
+            databases=$(ls -d */)  # Only list directories
+            if [[ -z "$databases" ]]; then
+                zenity --info --text="No databases found."
+            else
+                zenity --list --title="List of Databases" --column="Databases" --width=400 --height=300 $databases
+            fi
+            ;;
+        
+        "Connect to Database")
+            dbName=$(zenity --entry --title="Connect to Database" --text="Enter the database name to connect to:")
+            if [[ -z "$dbName" ]]; then
+                zenity --error --text="Database name cannot be empty."
+            elif [[ -d "$dbName" ]]; then
+                cd "$dbName" || exit
+                zenity --info --text="Connected to database '$dbName'."
+                cd ..
+            else
+                zenity --error --text="Database '$dbName' does not exist."
+            fi
+            ;;
+        
+        "Exit")
+            zenity --question --title="Exit" --text="Are you sure you want to exit?" --width=200 --height=100
+            if [[ $? -eq 0 ]]; then
+                break
+            fi
+            ;;
+        
+        *)
+            zenity --error --text="Invalid option selected."
+            ;;
+    esac
 done
