@@ -1,0 +1,3 @@
+id|int|PRIMARY_KEY
+age|varchar
+email|varchar

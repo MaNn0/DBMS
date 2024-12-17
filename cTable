@@ -1,79 +1,154 @@
+# #!/bin/bash
+
+# if [ -z "$1" ]; then
+#     echo "Table name not provided."
+#     exit 1
+# fi
+
+
+# tableName="$1"
+
+
+# if [[ -e "$tableName" ]]; then
+#     echo "Table '$tableName' already exists."
+#     exit 1
+# fi
+
+
+# read -p "Enter the number of columns: " columnCount
+
+# #column cound Validation ^must start $must end
+# if ! [[ "$columnCount" =~ ^[0-9]+$ ]] || [ "$columnCount" -le 0 ]; then
+#     echo "Invalid number of columns. Must be a positive integer."
+#     exit 1
+# fi
+
+# #flag to set pk true if set
+# primaryKeySet=true
+# declare -a columns #declare arry of columns
+
+# # loop of colums
+# #Start of looping every col
+# for ((i=1; i<=columnCount; i++)); do 
+#     echo "Configuring column $i:"
+#     read -p "  Column name: " columnName #set col name
+#     # space constrain
+#     if [[ "$columnName" =~ \  ]]; then
+#         echo "Column name cannot contain spaces."
+#         ((i--)) #back to same col to rename
+#         continue #skip to next loop
+#     fi
+#     while true; do
+#         read -p "  Column type (int/varchar): " columnType #type of col
+#         if [[ "$columnType" =~ "int" || "$columnType" =~ "varchar" ]]; then
+#             break
+#         else
+#             echo "Invalid type. Please choose 'int' or 'varchar'."
+#         fi
+#     done
+
+#     # ask for pk ,, if already choosen before (false) (wont ask) if true [flag]
+#     if $primaryKeySet; then
+#         read -p "  Set as primary key? (yes/no): " isPrimaryKey
+#         if [[ "$isPrimaryKey" =~ ^(y|yes) ]]; then
+#                 primaryKeySet=false #the flag to set false 
+#                 columnEntry="$columnName|$columnType|PRIMARY_KEY" #assign col if no previous PK and choosed yes
+#             else
+#                 columnEntry="$columnName|$columnType" #assign col if no previous PK and choosed no
+#         fi
+#     else
+#         columnEntry="$columnName|$columnType" #assign col if pk already exist
+#     fi
+
+#     columns+=("$columnEntry") 
+#     #arry would look like columns=("id|int|PRIMARY_KEY" "name|varchar" "age|int")
+# done
+# #end of looping every col
+
+# # Write table structure to the table file
+# #${array[@]} → Expands to all elements of the array, treating each element independently --- each element in line.
+# #${array[*]} → Expands to all elements of the array, treating the entire array as a single ---- all elements concatenated
+# for col in "${columns[@]}"; do
+#     echo "$col" >> "$tableName"
+# done
+#     cp "$tableName"  "$tableName"_metadata
+
+# echo "Table '$tableName' created successfully with the following columns:"
+# cat "$tableName"
+
 #!/bin/bash
 
+# Check if database name is provided as an argument
 if [ -z "$1" ]; then
-    echo "Table name not provided."
+    zenity --error --text="Table name not provided."
     exit 1
 fi
 
 tableName="$1"
 
-
+# Check if table already exists
 if [[ -e "$tableName" ]]; then
-    echo "Table '$tableName' already exists."
+    zenity --error --text="Table '$tableName' already exists."
     exit 1
 fi
 
-
-read -p "Enter the number of columns: " columnCount
-
-#column cound Validation ^must start $must end
+# Prompt for the number of columns
+columnCount=$(zenity --entry --title="Table Column Count" --text="Enter the number of columns:" --width=400)
 if ! [[ "$columnCount" =~ ^[0-9]+$ ]] || [ "$columnCount" -le 0 ]; then
-    echo "Invalid number of columns. Must be a positive integer."
+    zenity --error --text="Invalid number of columns. Must be a positive integer."
     exit 1
 fi
 
-#flag to set pk true if set
-primaryKeySet=false
-declare -a columns #declare arry of columns
+# Flag to set primary key (PK)
+primaryKeySet=true
+declare -a columns # Declare array to store column entries
 
-# loop of colums
-#Start of looping every col
+# Loop to configure columns
 for ((i=1; i<=columnCount; i++)); do 
-    echo "Configuring column $i:"
-    read -p "  Column name: " columnName #set col name
-    
-    # space constrain
+    # Prompt for column name
+    columnName=$(zenity --entry --title="Column Name" --text="Enter column name for column $i:" --width=400)
+
+    # Space constraint validation
     if [[ "$columnName" =~ \  ]]; then
-        echo "Column name cannot contain spaces."
-        ((i--)) #back to same col to rename
-        continue #skip to next loop
+        zenity --error --text="Column name cannot contain spaces."
+        ((i--)) # Go back to same column to rename
+        continue
     fi
 
-  
+    # Prompt for column type
     while true; do
-        read -p "  Column type (int/varchar): " columnType #type of col
-        if [[ "$columnType" == "int" || "$columnType" == "varchar" ]]; then
+        columnType=$(zenity --entry --title="Column Type" --text="Enter column type for column $i (int/varchar):" --width=400)
+        if [[ "$columnType" =~ "int" || "$columnType" =~ "varchar" ]]; then
             break
         else
-            echo "Invalid type. Please choose 'int' or 'varchar'."
+            zenity --error --text="Invalid type. Please choose 'int' or 'varchar'."
         fi
     done
 
-    # ask for pk ,, if already choosen before (wont ask) if !true [flag]
-    if ! $primaryKeySet; then
-        read -p "  Set as primary key? (yes/no): " isPrimaryKey
-        if [[ "$isPrimaryKey" == "yes" ]]; then
-            primaryKeySet=true #the flag to set true 
-            columnEntry="$columnName|$columnType|PRIMARY_KEY" #assign col if no previous PK and choosed yes
+    # Prompt to set primary key
+    if $primaryKeySet; then
+        isPrimaryKey=$(zenity --entry --title="Primary Key" --text="Set as primary key? (yes/no):" --width=400)
+        if [[ "$isPrimaryKey" =~ ^(y|yes) ]]; then
+            primaryKeySet=false
+            columnEntry="$columnName|$columnType|PRIMARY_KEY"
         else
-            columnEntry="$columnName|$columnType" #assign col if no previous PK and choosed no
+            columnEntry="$columnName|$columnType"
         fi
     else
-        columnEntry="$columnName|$columnType" #assign col if pk already exist
+        columnEntry="$columnName|$columnType"
     fi
 
+    # Add column to the array
     columns+=("$columnEntry") 
-    #arry would look like columns=("id|int|PRIMARY_KEY" "name|varchar" "age|int")
 done
-#end of looping every col
 
 # Write table structure to the table file
-#${array[@]} → Expands to all elements of the array, treating each element independently --- each element in line.
-#${array[*]} → Expands to all elements of the array, treating the entire array as a single ---- all elements concatenated
 for col in "${columns[@]}"; do
     echo "$col" >> "$tableName"
 done
 
-echo "Table '$tableName' created successfully with the following columns:"
-cat "$tableName"
+# Copy metadata
+cp "$tableName" "$tableName"_metadata
 
+# Show success message with table details
+zenity --info --title="Table Created" --text="Table '$tableName' created successfully with the following columns:\n$(echo -e "$(cat "$tableName")")"
