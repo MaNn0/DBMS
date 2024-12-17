@@ -1,0 +1,79 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Table name not provided."
+    exit 1
+fi
+
+tableName="$1"
+
+
+if [[ -e "$tableName" ]]; then
+    echo "Table '$tableName' already exists."
+    exit 1
+fi
+
+
+read -p "Enter the number of columns: " columnCount
+
+#^must start $must end
+if ! [[ "$columnCount" =~ ^[0-9]+$ ]] || [ "$columnCount" -le 0 ]; then
+    echo "Invalid number of columns. Must be a positive integer."
+    exit 1
+fi
+
+#flag to set pk true if set
+primaryKeySet=false
+declare -a columns #declare arry of columns
+
+# loop of colums
+#Start of looping every col
+for ((i=1; i<=columnCount; i++)); do 
+    echo "Configuring column $i:"
+    read -p "  Column name: " columnName #set col name
+    
+    # space constrain
+    if [[ "$columnName" =~ \  ]]; then
+        echo "Column name cannot contain spaces."
+        ((i--)) #back to same col to rename
+        continue #skip to next loop
+    fi
+
+  
+    while true; do
+        read -p "  Column type (int/varchar): " columnType #type of col
+        if [[ "$columnType" == "int" || "$columnType" == "varchar" ]]; then
+            break
+        else
+            echo "Invalid type. Please choose 'int' or 'varchar'."
+        fi
+    done
+
+    # ask for pk ,, if already choosen before (wont ask) if !true [flag]
+    if ! $primaryKeySet; then
+        read -p "  Set as primary key? (yes/no): " isPrimaryKey
+        if [[ "$isPrimaryKey" == "yes" ]]; then
+            primaryKeySet=true #the flag to set true 
+            columnEntry="$columnName|$columnType|PRIMARY_KEY" #assign col if no previous PK and choosed yes
+        else
+            columnEntry="$columnName|$columnType" #assign col if no previous PK and choosed no
+        fi
+    else
+        columnEntry="$columnName|$columnType" #assign col if pk already exist
+    fi
+
+    columns+=("$columnEntry") 
+    #arry would look like columns=("id|int|PRIMARY_KEY" "name|varchar" "age|int")
+done
+#end of looping every col
+
+# Write table structure to the table file
+#${array[@]} → Expands to all elements of the array, treating each element independently --- each element in line.
+#${array[*]} → Expands to all elements of the array, treating the entire array as a single ---- all elements concatenated
+for col in "${columns[@]}"; do
+    echo "$col" >> "$tableName"
+done
+
+echo "Table '$tableName' created successfully with the following columns:"
+cat "$tableName"
+

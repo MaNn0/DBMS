@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Check if the database name is passed as an argument
+# database as an argument
 if [ -z "$1" ]; then
     echo "No database name provided."
     exit 1
@@ -9,8 +9,7 @@ fi
 dbName="$1"
 echo "You are now connected to the database: $dbName"
 echo "You can perform operations within this database."
-
-# Keep the user in the database directory
+#select database
 cd "$dbName"
 
 COLUMNS=1
@@ -23,15 +22,11 @@ while $exit; do
             echo "Tables in $dbName:"
             ls -A
             ;;
-        "create table")
-            read -p "Enter table name to create: " tableName
-            if [[ -e "$tableName" ]]; then
-                echo "Table '$tableName' already exists."
-            else
-                touch "$tableName"
-                echo "Table '$tableName' created successfully."
-            fi
-            ;;
+       "create table")
+   	    read -p "Enter table name to create: " tableName
+   	    ../../cTable "$tableName" #launch cTable script
+   	    ;;
+
         "insert into table")
             read -p "Enter table name to insert into: " tableName
             if [[ -e "$tableName" ]]; then
