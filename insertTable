@@ -62,11 +62,7 @@ for colDef in "${columns[@]}"; do
     done
 done
 
-# Must be not NULL 
-if [[ "$primaryKeyColumn" != "" && "$primaryKeyValueSet" == false ]]; then
-    echo "Primary key column '$primaryKeyColumn' value is required."
-    exit 1
-fi
+# Must be not NULL already check in integer line 37
 
 # Append record to the data file
 output=""

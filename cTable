@@ -16,7 +16,7 @@ fi
 
 read -p "Enter the number of columns: " columnCount
 
-#^must start $must end
+#column cound Validation ^must start $must end
 if ! [[ "$columnCount" =~ ^[0-9]+$ ]] || [ "$columnCount" -le 0 ]; then
     echo "Invalid number of columns. Must be a positive integer."
     exit 1
