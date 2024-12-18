@@ -65,7 +65,6 @@
 #             read -p "Enter table name to delete a record from: " tableName
 #             if [[ -e "$tableName" ]]; then
 #                 echo "under developing delete record"
-             
 #             else
 #                 echo "Table '$tableName' does not exist."
 #             fi

@@ -93,7 +93,7 @@ if [[ -e "$tableName" ]]; then
 fi
 
 # Prompt for the number of columns
-columnCount=$(zenity --entry --title="Table Column Count" --text="Enter the number of columns:" --width=400)
+columnCount=$(zenity --entry --title="Table Column Count" --text="Enter the number of columns:" --width=600)
 if ! [[ "$columnCount" =~ ^[0-9]+$ ]] || [ "$columnCount" -le 0 ]; then
     zenity --error --text="Invalid number of columns. Must be a positive integer."
     exit 1
@@ -106,7 +106,7 @@ declare -a columns # Declare array to store column entries
 # Loop to configure columns
 for ((i=1; i<=columnCount; i++)); do 
     # Prompt for column name
-    columnName=$(zenity --entry --title="Column Name" --text="Enter column name for column $i:" --width=400)
+    columnName=$(zenity --entry --title="Column Name" --text="Enter column name for column $i:" --width=600)
 
     # Space constraint validation
     if [[ "$columnName" =~ \  ]]; then
@@ -117,7 +117,7 @@ for ((i=1; i<=columnCount; i++)); do
 
     # Prompt for column type
     while true; do
-        columnType=$(zenity --entry --title="Column Type" --text="Enter column type for column $i (int/varchar):" --width=400)
+        columnType=$(zenity --entry --title="Column Type" --text="Enter column type for column $i (int/varchar):" --width=600)
         if [[ "$columnType" =~ "int" || "$columnType" =~ "varchar" ]]; then
             break
         else
@@ -127,7 +127,7 @@ for ((i=1; i<=columnCount; i++)); do
 
     # Prompt to set primary key
     if $primaryKeySet; then
-        isPrimaryKey=$(zenity --entry --title="Primary Key" --text="Set as primary key? (yes/no):" --width=400)
+        isPrimaryKey=$(zenity --entry --title="Primary Key" --text="Set as primary key? (yes/no):" --width=600)
         if [[ "$isPrimaryKey" =~ ^(y|yes) ]]; then
             primaryKeySet=false
             columnEntry="$columnName|$columnType|PRIMARY_KEY"

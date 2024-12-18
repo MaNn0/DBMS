@@ -1,3 +1,3 @@
 id|int|PRIMARY_KEY
 name|varchar
-sex|varchar
+1|mano

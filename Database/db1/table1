@@ -1,3 +1,0 @@
-email|varchar
-age|int
-id|int|PRIMARY_KEY

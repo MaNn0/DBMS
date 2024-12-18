@@ -1,122 +1,44 @@
-# #!/bin/bash
-
-# if [ -z "$1" ]; then
-#     echo "Table name not provided."
-#     exit 1
-# fi
-
-# tableName="$1"
-
-# # Check if table exists
-# if [[ ! -e "$tableName" ]]; then
-#     echo "Table '$tableName' does not exist."
-#     exit 1
-# fi
-
-# # Read the table structure and get the column details
-# columns=() #define empty array
-# #IFS= #empty value Prevents word splitting (preserves spaces).
-
-# while 
-# IFS= read -r line; do #This reads the file line by line into the variable line.
-#     columns+=("$line") #array contains columns 
-# done < "$tableName" #redirect file to while loop
-
-# declare -A record #-A  associative array >> y3ni Key-Value -- array holds column names as keys and user input as values.
-# declare primaryKeyColumn
-# primaryKeyValueSet=false
-
-# echo "Inserting into table '$tableName'..."
-
-# # Parse table structure and collect values 
-# for colDef in "${columns[@]}"; do
-#     IFS='|' read -r colName colType colKey <<< "$colDef" #columns[0]="id|int|PRIMARY_KEY"
-#     while true; do
-#         read -p "Enter value for column '$colName' ($colType): " value #entering value to assign in table ############
-
-#         # integer validation
-#        if [[ "$colType" == "int" && ! "$value" =~ ^[0-9]+$ ]]; then
-#            echo "Invalid value. '$colName' requires an integer."
-#            continue
-#         fi
-
-#         # PK validation [pk must be unique, PK can be in any column]
-#         if [[ "$colKey" == "PRIMARY_KEY" ]]; then
-#             if [[ -e "$tableName.data" ]]; then
-#                 # PK column index
-#                 pkIndex=$(grep -n "^$colName|" "$tableName" | cut -d: -f1)
-#                 # Validate PK uniqueness 
-#                 if awk -F'|' -v idx="$pkIndex" -v val="$value" '{ if ($idx == val) exit 1 }' "$tableName.data"; then
-#                     :
-#                 else
-#                     echo "Error: Primary key value '$value' already exists."
-#                     continue
-#                 fi
-#             fi
-#             primaryKeyValueSet=true
-#             primaryKeyColumn="$colName" #required to store to set not null
-#         fi
-
-#         record["$colName"]="$value"
-#         break
-#     done
-# done
-
-# # Must be not NULL already check in integer line 37
-
-# # Append record to the data file
-# output=""
-# for colDef in "${columns[@]}"; do
-#     IFS='|' read -r colName _ <<< "$colDef"
-#     value="${record[$colName]}"
-#     output+="$value|"
-# done
-
-# # Remove "|"
-# output="${output%|}"
-# echo "$output" >> "$tableName.data"
-
-# echo "Record inserted successfully into '$tableName'."
-
 #!/bin/bash
 
+# Check if table name is provided
 if [ -z "$1" ]; then
     zenity --error --text="Table name not provided." --title="Error"
     exit 1
 fi
 
 tableName="$1"
+metadataFile="${tableName}_metadata"
 
-# Check if table exists
-if [[ ! -e "$tableName" ]]; then
+# Check if the table's metadata file exists
+if [[ ! -e "$metadataFile" ]]; then
     zenity --error --text="Table '$tableName' does not exist." --title="Error"
     exit 1
 fi
 
-# Read the table structure and get the column details
-columns=() #define empty array
-
-# Read file line by line into columns array
+# Read the table structure (metadata) into an array
+columns=()
 while IFS= read -r line; do
     columns+=("$line")
-done < "$tableName" #redirect file to while loop
+done < "$metadataFile"  # Read table metadata file into columns array
 
-declare -A record # associative array to hold column names as keys and user input as values.
+declare -A record  # Associative array to store column names and user input
 declare primaryKeyColumn
 primaryKeyValueSet=false
 
-zenity --info --text="Inserting into table '$tableName'..."
+# Prompt the user that the insertion is starting
+zenity --info --text="Inserting into table '$tableName'..." --title="Insert Data"
 
-# Parse table structure and collect values using zenity dialogs
+# Loop over each column to collect values
 for colDef in "${columns[@]}"; do
     IFS='|' read -r colName colType colKey <<< "$colDef"
 
     while true; do
+        # Prompt the user for input using Zenity dialog
         value=$(zenity --entry --title="Enter Value" --text="Enter value for column '$colName' ($colType):")
-        
-        # Check if user canceled the input
+
+        # Check if the user canceled the input
         if [ $? -ne 0 ]; then
-            zenity --error --text="Input canceled. Exiting."
+            zenity --error --text="Input canceled. Exiting." --title="Error"
             exit 1
         fi
         
@@ -126,13 +48,13 @@ for colDef in "${columns[@]}"; do
             continue
         fi
 
-        # PK validation [pk must be unique]
+        # Primary Key validation
         if [[ "$colKey" == "PRIMARY_KEY" ]]; then
-            if [[ -e "$tableName.data" ]]; then
-                # PK column index
-                pkIndex=$(grep -n "^$colName|" "$tableName" | cut -d: -f1)
-                # Validate PK uniqueness 
-                if ! awk -F'|' -v idx="$pkIndex" -v val="$value" '{ if ($idx == val) exit 1 }' "$tableName.data"; then
+            if [[ -e "$tableName" ]]; then
+                # Get the column index for the primary key from metadata
+                pkIndex=$(grep -n "^$colName|" "$metadataFile" | cut -d: -f1)
+                # Check if the primary key already exists in the table file
+                if ! awk -F'|' -v idx="$pkIndex" -v val="$value" '{ if ($idx == val) exit 1 }' "$tableName"; then
                     zenity --error --text="Error: Primary key value '$value' already exists." --title="Error"
                     continue
                 fi
@@ -147,7 +69,7 @@ for colDef in "${columns[@]}"; do
     done
 done
 
-# Append record to the data file
+# Prepare output by concatenating the user inputs
 output=""
 for colDef in "${columns[@]}"; do
     IFS='|' read -r colName _ <<< "$colDef"
@@ -157,6 +79,9 @@ done
 
 # Remove trailing pipe symbol
 output="${output%|}"
-echo "$output" >> "$tableName.data"
 
-zenity --info --text="Record inserted successfully into '$tableName'."
+# Append the record to the table file
+echo "$output" >> "$tableName"
+
+# Show success message
+zenity --info --text="Record inserted successfully into '$tableName'." --title="Success"
