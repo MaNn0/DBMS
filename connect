@@ -66,11 +66,11 @@ while $exit; do
             fi
             ;;
         "delete record")
-            read -p "Enter table name to delete a record from: " tableName
-            if [[ -e "$tableName" ]]; then
-                echo "under development delete record"
-            else
+            read -p "Enter table name to update: " tableName
+            if [[ -z "$tableName" || ! -e "$tableName" ]]; then
                 echo "Table '$tableName' does not exist."
+            else
+                ../../uTable "$tableName" 
             fi
             ;;
         "drop table")
