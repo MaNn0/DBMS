@@ -22,7 +22,7 @@ while $exit; do
     COLUMNS=1
     echo
     PS3="Choose an option in $dbName: "
-    select option in "list tables" "create table" "insert into table" "update table" "select from table" "delete record" "remove table" "exit database"; do
+    select option in "list tables" "create table" "insert into table" "update table" "select from table" "delete record" "drop table" "exit database"; do
         case $option in
         "list tables")
             if [[ -z "$(ls -A)" ]]; then
@@ -73,10 +73,10 @@ while $exit; do
                 echo "Table '$tableName' does not exist."
             fi
             ;;
-        "remove table")
+        "drop table")
             read -p "Enter table name to remove: " tableName
             if [[ -e "$tableName" ]]; then
-                rm "$tableName"
+                rm -f "$tableName"*
                 echo "Table '$tableName' removed successfully."
             else
                 echo "Table '$tableName' does not exist."
