@@ -16,24 +16,36 @@ columns=($(echo "$header" | tr '|' '\n'))
 read -p "Search by (column name): " searchColumn
 
 # Check if the column name exists in the header
-columnIndex=-1
+# columnIndex=-1
+flagIndex=0
 for i in "${!columns[@]}"; do
     if [[ "${columns[$i]}" == "$searchColumn" ]]; then
         columnIndex=$i
+        flagIndex=1
         break
     fi
 done
 
-if [[ $columnIndex -eq -1 ]]; then
+if [[ $flagIndex -eq 0 ]]; then
     echo "Column '$searchColumn' does not exist."
     exit 1
 fi
+
+# id|name
+# 10|abood
+# 2|hossam
+# 5|mano
+# 4|zalabany
+
 
 # Ask the user for the value to search for
 read -p "Enter value to search for: " searchValue
 
 # Perform the search by comparing the column value
 recordLine=$(awk -F'|' -v col="$((columnIndex + 1))" -v value="$searchValue" '$col == value { print $0 }' "$tableName")
+
+# ay arithmetic operation (()) ===== ay command expantion $() ===== ay comparison [[]] ===== ay if [ index aw ^(a-z) ]
+# ay array=($()) hyb2a array ===== ay $(value=arithmetic operation) 
 
 if [[ -z "$recordLine" ]]; then
     echo "No record found with '$searchValue' in column '$searchColumn'."
