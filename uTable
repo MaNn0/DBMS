@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Check if the table name is passed as an argument
+if [[ -z "$1" || ! -e "$1" ]]; then
+    echo "Table does not exist or table name not provided."
+    exit 1
+fi
+
+tableName="$1"  # Assign the table name from the argument
+
+# Read the header (first line) to get the column names
+header=$(head -n 1 "$tableName")
+columns=($(echo "$header" | tr '|' '\n'))
+
+# Ask the user for the column name to search by
+read -p "Search by (column name): " searchColumn
+
+# Check if the column name exists in the header
+columnIndex=-1
+for i in "${!columns[@]}"; do
+    if [[ "${columns[$i]}" == "$searchColumn" ]]; then
+        columnIndex=$i
+        break
+    fi
+done
+
+if [[ $columnIndex -eq -1 ]]; then
+    echo "Column '$searchColumn' does not exist."
+    exit 1
+fi
+
+# Ask the user for the value to search for
+read -p "Enter value to search for: " searchValue
+
+# Perform the search by comparing the column value
+recordLine=$(awk -F'|' -v col="$((columnIndex + 1))" -v value="$searchValue" '$col == value { print $0 }' "$tableName")
+
+if [[ -z "$recordLine" ]]; then
+    echo "No record found with '$searchValue' in column '$searchColumn'."
+else
+    echo "Record found: $recordLine"
+
+    # Ask the user if they want to update this record
+    read -p "Do you want to update this record? (yes/no): " updateChoice
+    if [[ "$updateChoice" =~ ^(yes|y)$ ]]; then
+        # Split the record into fields
+        IFS='|' read -r -a fields <<< "$recordLine"
+
+        # Display the fields and allow the user to update
+        for i in "${!fields[@]}"; do
+            echo "Field ${columns[$i]}: ${fields[$i]}"
+            read -p "Enter new value for '${columns[$i]}' (leave empty to keep current value): " newValue
+            if [[ -n "$newValue" ]]; then
+                fields[$i]="$newValue"
+            fi
+        done
+
+        # Join the fields back into a record and update the table
+        updatedRecord=$(IFS='|'; echo "${fields[*]}")
+        sed -i "s/^$recordLine$/$updatedRecord/" "$tableName"
+
+        echo "Record updated successfully."
+    fi
+fi

@@ -1,3 +1,0 @@
-id|int|PRIMARY_KEY
-name|varchar
-sex|varchar

@@ -71,7 +71,7 @@
 
 #!/bin/bash
 
-zenity --info --text="*********** Welcome To Database Management System ***********"
+zenity --info --text="Welcome To Database Management System "
 
 # Ensure the Database directory exists
 if [ -e ~/DBMS/Database ]; then
