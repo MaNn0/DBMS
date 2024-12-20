@@ -1,150 +1,3 @@
-# #!/bin/bash
-
-# echo -e "\n"
-# echo "*********** Welcome To Database Management System ***********"
-# echo -e ""
-
-# # Ensure the Database directory exists
-# if [ -e ~/DBMS/Database ]; then
-#     cd ~/DBMS/Database
-#     # echo "DBMS is ready"
-# else
-#     mkdir -p ~/DBMS/Database
-#     cd ~/DBMS/Database
-#     # echo "DBMS is ready"
-# fi
-
-# COLUMNS=1
-# exit=true
-
-# while $exit; do
-#     PS3="Choose an option: "
-#     select name in "create database" "remove database" "list database" "connect to a database" "exit"; do
-#         echo
-#         case $name in
-#         "create database")
-#             read -p "Please enter database name: " dbName
-#             if [[ -d $dbName ]]; then
-#                 echo "Database already exists."
-#                 echo
-#             else
-#                 mkdir "$dbName"
-#                 echo "Database created successfully."
-#             fi
-#             ;;
-#         "remove database")
-#             read -p "Please enter the database name to delete: " dbName
-#             if [[ -d $dbName ]]; then
-#                 rm -r "$dbName"
-#                 echo "Database deleted successfully."
-#             else
-#                 echo "No database found with this name."
-#             fi
-#             ;;
-#         "list database")
-#             if [[ -z "$(ls -A)" ]]; then
-#                 echo "There are no databases."
-#             else
-#                 ls -A
-#             fi
-#             ;;
-#         "connect to a database")
-#             read -p "Which database do you want to access? " dbName
-#             if [[ -d $dbName ]]; then
-#                 # Call 'connect' script 
-#                 ../connect "$dbName"
-#             else
-#                 echo
-#                 echo "Please enter the name of an existing database."
-#             fi
-#             ;;
-#         "exit")
-#             exit=false
-#             break
-#             ;;
-#         *)
-#             echo "UNKNOWN OPTION"
-#             ;;
-#         esac
-#     done
-# done
-
-# #!/bin/bash
-
-# zenity --info --text="Welcome To Database Management System "
-
-# # Ensure the Database directory exists
-# if [ -e ~/DBMS/Database ]; then
-#     cd ~/DBMS/Database
-# else
-#     mkdir -p ~/DBMS/Database
-#     cd ~/DBMS/Database
-# fi
-
-# COLUMNS=1
-# exit=true
-
-# while $exit; do
-#     # Use Zenity to create a dropdown for selecting an option
-#     option=$(zenity --list --title="Database Management System" --column="Options" \
-#         "create database" \
-#         "remove database" \
-#         "list database" \
-#         "connect to a database" \
-#         "exit")
-    
-#     # Process the selected option
-#     case $option in
-#     "create database")
-#         dbName=$(zenity --entry --title="Create Database" --text="Please enter database name:" --width=400)
-#         if [[ -d $dbName ]]; then
-#             zenity --error --text="Database already exists."
-#         else
-#             mkdir "$dbName"
-#             zenity --info --text="Database '$dbName' created successfully."
-#         fi
-#         ;;
-#     "remove database")
-#         dbName=$(zenity --entry --title="Remove Database" --text="Please enter the database name to delete:" --width=400)
-#         if [[ -d $dbName ]]; then
-#             rm -r "$dbName"
-#             zenity --info --text="Database '$dbName' deleted successfully."
-#         else
-#             zenity --error --text="No database found with this name."
-#         fi
-#         ;;
-#     "list database")
-#         if [[ -z "$(ls -A)" ]]; then
-#             zenity --info --text="There are no databases."
-#         else
-#             dbList=$(ls -A)
-#             zenity --info --text="Databases:\n$dbList"
-#         fi
-#         ;;
-#     "connect to a database")
-#         dbName=$(zenity --entry --title="Connect to Database" --text="Which database do you want to access?" --width=400)
-#         if [[ -d $dbName ]]; then
-#             # Call the 'connect' script (assuming the connect script is available)
-#             ../connect "$dbName"
-#         else
-#             zenity --error --text="Please enter the name of an existing database."
-#         fi
-#         ;;
-#     "exit")
-#         exit=false
-#         break
-#         ;;
-#     *)
-#         zenity --error --text="UNKNOWN OPTION"
-#         ;;
-#     esac
-# done
-# i=0
-# while [ $i -lt 10 ] do
-# echo $i
-# i+=1
-# done
-
 #!/bin/bash
 
 if [ ! -e ~/DBMS/Database ]; then
@@ -165,8 +18,8 @@ while $exit; do
     
     case $name in
     "create database")
-        read -p "enter database name" dbName
-        if [[ -e $dbName ]]; then
+        read -p "enter database name: " dbName
+        if [[ -e $dbName || ! -e "$tableName" ]]; then
             echo "Database exist or not valid"
         else
             mkdir "$dbName"
@@ -185,11 +38,10 @@ while $exit; do
         ls
     ;;
     "connect to a database")
-        read -p "enter database name" dbName
+        read -p "enter database name: " dbName
         if [[ -e $dbName ]]; then
-            cd $dbName
-            ../connect $dbName
-            echo "you are now connected to database($dbName)"
+            # cd $dbName
+            ../connect "$dbName"
         else
             echo "There is no database with this name"
         fi
