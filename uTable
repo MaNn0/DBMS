@@ -43,7 +43,6 @@ read -p "Enter value to search for: " searchValue
 
 # Perform the search by comparing the column value
 recordLine=$(awk -F'|' -v col="$((columnIndex + 1))" -v value="$searchValue" '$col == value { print $0 }' "$tableName")
-
 # ay arithmetic operation (()) ===== ay command expantion $() ===== ay comparison [[]] ===== ay if [ index aw ^(a-z) ]
 # ay array=($()) hyb2a array ===== ay $(value=arithmetic operation) 
 
@@ -57,7 +56,6 @@ else
     if [[ "$updateChoice" =~ ^(yes|y)$ ]]; then
         # Split the record into fields
         IFS='|' read -r -a fields <<< "$recordLine"
-
         # Display the fields and allow the user to update
         for i in "${!fields[@]}"; do
             echo "Field ${columns[$i]}: ${fields[$i]}"
