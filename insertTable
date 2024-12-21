@@ -7,7 +7,7 @@ if [ -z "$1" ]; then
 fi
 
 tableName="$1"
-metadataFile="${tableName}_metadata"
+metadataFile="${tableName}_metadata" #"$tableName"_metadata"
 
 # Check if the table's metadata file exists
 if [[ ! -e "$metadataFile" ]]; then
