@@ -6,52 +6,91 @@ if [ ! -e ~/DBMS/Database ]; then
     else
     cd ~/DBMS/Database
 fi
-
-echo "welcome to DBMS"
+PS3="Select Value : " #prompt
+echo "--- Welcome To DBMS ---"
+echo
 
 exit=true
-COLUMNS=1
-while $exit; do
-
-    PS3="Select Value"
-    select name in "create database" "remove database" "list database" "connect to a database" "exit"; do
+COLUMNS=1 #more readable in terminal 
+while $exit;
+    do
+    select name in "create database" "remove database" "list database" "connect to a database" "exit"; 
     
-    case $name in
-    "create database")
-        read -p "enter database name: " dbName
-        if [[ -e $dbName || ! -e "$tableName" ]]; then
-            echo "Database exist or not valid"
-        else
-            mkdir "$dbName"
-            echo "Database Created Successfully"
-        fi
-    ;;
-    "remove database")
-        read -p "Enter database name to delete: " dbName
-        if [ -e $dbName ]; then
-            rm -r $dbName
-        else
-            echo "Database doesn't exist or not valid"
-        fi
-    ;;
-    "list database")
-        ls
-    ;;
-    "connect to a database")
-        read -p "enter database name: " dbName
-        if [[ -e $dbName ]]; then
-            # cd $dbName
-            ../connect "$dbName"
-        else
-            echo "There is no database with this name"
-        fi
-    ;;
-    "exit")
-            exit=false
+    do
+        case $name in
+        "create database")
+            read -p "enter database name: " dbName
+                #if [[ "$dbName" =~ ^[0-9] || "$dbName" =~ [[:space:]] || "$dbName" =~ ]]
+                 if [[ -e "$dbName" ]]
+                    then
+                        echo "Database exist"
+                        break
+                    else
+                       if [[ "$dbName" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]] #mix letters #starts with letters , ends with zero or more of [a-zA-Z0-9] _ after  9 allows db_1 '_'
+                        then 
+                            mkdir "$dbName"
+                            echo "Database Created Successfully Called : '$dbName'"
+                        else
+                            echo "Invalid Database Name 'Cannot Start With Numbers Or Contain Spaces' or Special Char "
+                        fi
+                fi
+               
+          
+        ;;
+        "remove database")
+            read -p "Enter database name to delete: " dbName
+            if [[ -e $dbName ]]; 
+            then
+                rm -r $dbName
+                echo "Database '$dbName' Removed Successfully "
+                echo
+                echo "Available Options"
+                break
+            else
+                echo "Database doesn't exist or not valid"
+                echo
+                echo "Available Options"
+                break
+            fi
+        ;;
+       
+        "list database")
+            if [[ -z "$(ls -d1 */ 2>/dev/null )" ]]; 
+            then 
+            echo "EmptyDatabase"
+            else
+            ls -d1 */ | sed 's:/$::' #ls -d list current dirc takes argument  */ wild card
+            echo
+            echo "Available Options"
+            fi
             break
-    ;;
-    *)
-        echo "Unkown Value"
-    esac
+        ;;
+        "connect to a database")
+            read -p "enter database name: " dbName
+            if [[ -e $dbName ]];
+             then
+                # cd $dbName
+                ../connect "$dbName"
+            else
+                echo "There is no database with this name"
+                echo 
+                echo "Available Options"
+                break
+            fi
+        ;;
+        "exit")
+                read -p "Are you Sure You Want To Exit ? (yes/no)" answer
+                if [[ "yes" =~ $answer ]]
+                then
+                    exit=false
+                    break
+                else
+                    break
+                fi
+        ;;
+        *)
+            echo "Unkown Value"
+        esac
+
     done
 done

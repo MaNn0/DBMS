@@ -17,60 +17,103 @@ while $exit; do
     select option in "list tables" "create table" "insert into table" "update table" "select from table" "delete record" "drop table" "exit database"; do
         case $option in
         "list tables")
-            if [[ -z "$(ls)" ]]; then
+            if [[ -z "$(ls -p | grep -v /$)" ]]; then #ls -p | grep -v [-p directories with /] grev -v /$ remove eli a5ro / 
                 echo "There are no tables in this database."
             else
                 echo "Tables in $dbName:"
-                ls
+                ls 
+                echo
+                echo "Available Options"
+                break
             fi
             ;;
         "create table")
             read -p "Enter table name to create: " tableName
-            if [[ "$tableName" =~ \  ]]; then
-                echo "Table name cannot contain spaces"
-            else
-                ../../cTable "$tableName"
+            if [[ -e "$tableName" ]]
+            then
+                echo "Table In Database Already Exist"
+                echo
+                echo "Available Options"
+                break
+                else
+                    if [[ "$tableName" =~ ^[0-9] || "$tableName" =~ [[:space:]] || -z "$tableName" ]]
+                    then
+                        echo "Table Name Can't Start With Numbers , Contain Spaces , Or Null"
+                        echo
+                        echo "Available Options"
+                        break
+                    else
+                        ../../cTable "$tableName"
+                         
+                    fi
             fi
             ;;
         "insert into table")
             read -p "Enter table name to insert into: " tableName
-            if [[ -e "$tableName" ]]; then
+            if [[ -e "$tableName" ]]
+            then
                 ../../insertTable "$tableName"
             else
                 echo "Table '$tableName' does not exist."
+                echo
+                echo "Available Options"
+                break      
             fi
             ;;
         "update table")
             read -p "Enter table name to update: " tableName
-            if [[ -z "$tableName" || ! -e "$tableName" ]]; then
-                echo "Table '$tableName' does not exist."
-            else
+            if [[ -e "$tableName" ]]
+            then
                 ../../uTable "$tableName" 
+                
+            else
+                echo "Table '$tableName' does not exist."
+                echo
+                echo "Available Options"
+                break
             fi
             ;;  
         "select from table")
             read -p "Enter table name to select from: " tableName
-            if [[ -e "$tableName" ]]; then
+            if [[ -e "$tableName" ]]
+            then
                 echo "under development select from table"
             else
                 echo "Table '$tableName' does not exist."
+                echo
+                echo "Available Options"
+                break
             fi
             ;;
         "delete record")
-            read -p "Enter table name to update: " tableName
-            if [[ -z "$tableName" || ! -e "$tableName" ]]; then
-                echo "Table '$tableName' does not exist."
+            read -p "Enter table name to delete record from: " tableName
+            if [[ -e "$tableName" ]]
+            then
+               echo "under development"       
             else
-                ../../uTable "$tableName" 
+                echo "Table '$tableName' does not exist."
+                echo
+                echo "Available Options"
+                break
             fi
             ;;
         "drop table")
             read -p "Enter table name to remove: " tableName
-            if [[ -e "$tableName" ]]; then
-                rm -f "$tableName"*
+            if [[ -e "$tableName" ]]
+            then
+                rm -i "$tableName"  #-i asks before remove -f for focring 
+                    if [[ ! -e "$tableName" ]] #if not exist
+                    then
+                    rm "$tableName"_metadata
+                    fi
                 echo "Table '$tableName' removed successfully."
+                echo "Available Options"
+                break
             else
                 echo "Table '$tableName' does not exist."
+                echo
+                echo "Available Options"
+                break
             fi
             ;;
         "exit database")
