@@ -77,7 +77,7 @@ while $exit; do
             read -p "Enter table name to select from: " tableName
             if [[ -e "$tableName" ]]
             then
-                echo "under development select from table"
+                ../../selectFROM "$tableName" 
             else
                 echo "Table '$tableName' does not exist."
                 echo

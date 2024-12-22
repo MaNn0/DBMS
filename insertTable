@@ -1,177 +1,85 @@
 #!/bin/bash
 
-# Check if table name is provided
 if [ -z "$1" ]; then
     echo "Error: Table name not provided."
     exit 1
 fi
 
 tableName="$1"
-metadataFile="${tableName}_metadata" #"$tableName"_metadata"
+metadataFile=".$tableName""_metadata"
 
 # Check if the table's metadata file exists
-if [[ ! -e "$metadataFile" ]]; then
+if [[ ! -f "$metadataFile" ]]; then
     echo "Error: Table '$tableName' does not exist."
     exit 1
 fi
 
-# Read the table structure (metadata) into an array
+ # Read the table structure (metadata) into an array
 columns=()
-while IFS= read -r line; do
+for line in $(cat "$metadataFile"); do #id:int:PK   #name:str
+    echo $line
     columns+=("$line")
-done < "$metadataFile"  # Read table metadata file into columns array
+done
 
-declare -A record  # Associative array to store column names and user input
-declare primaryKeyColumn
-primaryKeyValueSet=false
+record=()  # Array to store column values
+primaryKeySet=false
 
-# Prompt the user that the insertion is starting
 echo "Inserting into table '$tableName'..."
 
 # Loop over each column to collect values
-for colDef in "${columns[@]}"; do
-    IFS='|' read -r colName colType colKey <<< "$colDef"
+for colDef in "${columns[@]}" #coldef = id:int:PK  , name:str
+do #id name age 
+    IFS=':' read -r colName colType colKey <<< "$colDef"
 
-    while true; do
-        # Prompt the user for input using terminal
+    while true;
+    do
+        # Prompt the user for input
         read -p "Enter value for column '$colName' ($colType): " value
 
-        # Check if the user canceled the input
-        if [ -z "$value" ]; then
-            echo "Error: Input canceled. Exiting."
-            exit 1
-        fi
-        
-        # Integer validation
+        # Validate input for integers
         if [[ "$colType" == "int" && ! "$value" =~ ^[0-9]+$ ]]; then
             echo "Error: Invalid value. '$colName' requires an integer."
             continue
         fi
-
-        # Primary Key validation
-        if [[ "$colKey" == "PRIMARY_KEY" ]]; then
-            if [[ -e "$tableName" ]]; then
-                # Get the column index for the primary key from metadata
-                pkIndex=$(grep -n "^$colName|" "$metadataFile" | cut -d: -f1)
-                # Check if the primary key already exists in the table file
-                if ! awk -F'|' -v idx="$pkIndex" -v val="$value" '{ if ($idx == val) exit 1 }' "$tableName"; then
-                    echo "Error: Primary key value '$value' already exists."
-                    continue
-                fi
-            fi
-            primaryKeyValueSet=true
-            primaryKeyColumn="$colName"
+        # Validate input for Str
+        if [[ "$colType" == "str" && ! "$value" =~ ^[a-zA-Z]+$ ]]; then
+            echo "Error: Invalid value. '$colName' requires strings only."
+            continue
         fi
 
-        # Store the value in the associative array
-        record["$colName"]="$value"
+# if grep -q "apple" fruits.txt; then
+#     echo "Apple is in the list!"
+# else
+#     echo "Apple is not in the list."
+# fi
+        # Validate PK
+        if [[ "$colKey" == "PK" ]]
+        then            #^hossam: first field pk must be first col in creating
+            if grep -q "^$value:" "$tableName" 2>/dev/null #-q the pattern is found ? return 0[sucess] -- not found return 1[fail]  #always PK must be first column  ^$value:
+            then 
+                echo "Error: Primary key value '$value' already exists."
+                continue
+            fi
+        fi
+
+        # Store the value in the record array
+        record+=("$value") #id name age mail #col1 col2 col3 col4 actully >> 1 hossam 25 amfa@gmail.com
         break
     done
 done
 
-# Prepare output by concatenating the user inputs
-output=""
-for colDef in "${columns[@]}"; do
-    IFS='|' read -r colName _ <<< "$colDef"
-    value="${record[$colName]}"
-    output+="$value|"
+
+
+output="" #empty
+for value in "${record[@]}"
+do
+    output+="$value:" #add to output col1:col2:col3:
 done
 
 # Remove trailing pipe symbol
-output="${output%|}"
+#utput="${output%|}" other way 
+output=$( echo "$output" | sed 's/:$//' ) #removes last :
 
 # Append the record to the table file
-echo "$output" >> "$tableName"
-
-# Show success message
+echo "$output" >> "$tableName" #check 79 in cTable
 echo "Record inserted successfully into '$tableName'."
-
-# #!/bin/bash
-
-# # Check if table name is provided
-# if [ -z "$1" ]; then
-#     echo "Error: Table name not provided."
-#     exit 1
-# fi
-
-# tableName="$1"
-# metadataFile="${tableName}_metadata"
-
-# # Check if the table's metadata file exists
-# # if [[ ! -e "$metadataFile" ]]; then
-# #     echo "Error: Table '$tableName' does not exist."
-# #     exit 1
-# # fi
-
-# # Read the table structure (metadata) into an array
-# columns=()
-# while IFS= read -r line; do
-#     columns+=("$line")
-# done < "$metadataFile"  # Read table metadata file into columns array
-
-# declare -A record  # Associative array to store column names and user input
-# declare primaryKeyColumn
-# primaryKeyValueSet=false
-
-# # Inform the user that the insertion is starting
-# echo "Inserting into table '$tableName'..."
-
-# # Loop over each column to collect values
-# for colDef in "${columns[@]}"; do
-#     IFS='|' read -r colName colType colKey <<< "$colDef"
-
-#     while true; do
-#         # Prompt the user for input in the terminal
-#         echo "Enter value for column '$colName' ($colType):"
-#         read value
-
-#         # Check if the user canceled the input
-#         if [ -z "$value" ]; then
-#             echo "Error: Input canceled. Exiting."
-#             exit 1
-#         fi
-
-#         # Integer validation
-#         if [[ "$colType" == "int" && ! "$value" =~ ^[0-9]+$ ]]; then
-#             echo "Error: Invalid value. '$colName' requires an integer."
-#             continue
-#         fi
-
-#         # Primary Key validation
-#         if [[ "$colKey" == "PRIMARY_KEY" ]]; then
-#             # Check if the primary key already exists in the table file
-#             if [[ -e "$tableName" ]]; then
-#                 pkIndex=$(grep -n "^$colName|" "$metadataFile" | cut -d: -f1)
-#                 # Check if the primary key already exists in the table file
-#                 if ! awk -F'|' -v idx="$pkIndex" -v val="$value" '{ if ($idx == val) exit 1 }' "$tableName"; then
-#                     echo "Error: Primary key value '$value' already exists."
-#                     continue
-#                 fi
-#             fi
-#             primaryKeyValueSet=true
-#             primaryKeyColumn="$colName"
-#         fi
-
-#         # Store the value in the associative array
-#         record["$colName"]="$value"
-#         break
-#     done
-# done
-
-# # Prepare output by concatenating the user inputs
-# output=""
-# for colDef in "${columns[@]}"; do
-#     IFS='|' read -r colName _ <<< "$colDef"
-#     value="${record[$colName]}"
-#     output+="$value|"
-# done
-
-
-# # Remove trailing pipe symbol
-# output="${output%|}"
-
-# # Append the record to the table file
-# echo "$output" >> "$tableName"
-
-# # Show success message
-# echo "Record inserted successfully into '$tableName'."

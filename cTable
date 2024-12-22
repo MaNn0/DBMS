@@ -70,8 +70,13 @@ for ((i=1; i<=columnCount; i++))
  
 done
 
-awk -F : '{ printf "%s : ",$1 }' .$tableName"_metadata" > $tableName  #%s format pritnf like in c
-sed -i 's/:$//' $tableName #remove last :
+#awk -F : '{ printf "%s : ",$1 }' .$tableName"_metadata" > $tableName  #%s format pritnf like in c
+while IFS=: read -r col _; do
+    echo -n "$col:" >> $tableName
+done < .$tableName"_metadata"
+#sed -i 's/ : $//' $tableName
+sed -i 's/:*$//' $tableName #remove last :
+echo "" >> "$tableName" #when adding values in insert it skips first line
 #awk -F ':' '{print $1}' .$tableName"_metadata" | paste -sd'|' - > "$tableName"
 echo "Table '$tableName' created successfully with the following columns:"
  

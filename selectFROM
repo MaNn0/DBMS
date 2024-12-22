@@ -1,1 +1,66 @@
 #!/bin/bash
+
+# Check if table name is provided
+if [ -z "$1" ]; then
+    echo "Error: Table name not provided."
+    exit 1
+fi
+
+tableName="$1"
+metadataFile=".$tableName""_metadata"
+
+# Check if the table's metadata file exists
+if [[ ! -f "$metadataFile" ]]; then
+    echo "Error: Table '$tableName' does not exist."
+    exit 1
+fi
+
+# Read the table structure (metadata) into an array
+columns=()
+columnNames=()
+for line in $(cat "$metadataFile"); do
+    IFS=':' read -r colName colType colKey <<< "$line"
+    columns+=("$line")
+    columnNames+=("$colName")
+done
+
+# Show all columns with assigned numbers
+echo "Available columns:"
+for i in "${!columnNames[@]}"; do
+    echo "$((i+1)): ${columnNames[$i]}"
+done
+
+# Prompt the user to select a column by its number
+read -p "Enter the column number to select or 0 to select all: " colChoice
+
+# Function to display the selected column
+display_column() {
+    local columnIndex=$1
+    echo "Displaying values from column '${columnNames[$columnIndex]}':"
+    
+    # Read and print the values of the selected column
+    while IFS=":" read -r -a row; do
+        echo "${row[$columnIndex]}"
+    done < "$tableName"
+}
+
+# Show all columns if 0 is selected
+if [ "$colChoice" -eq 0 ]; then
+    echo "Displaying all columns:"
+    # Read and print all rows
+    while IFS=":" read -r -a row; do
+        for value in "${row[@]}"; do
+            echo -n "$value | "
+        done
+        echo
+    done < "$tableName"
+else
+    # Validate if the choice is valid
+    if [[ "$colChoice" -ge 1 && "$colChoice" -le ${#columns[@]} ]]; then
+        # Display the selected column
+        display_column $((colChoice - 1))
+    else
+        echo "Error: Invalid column number selected."
+        exit 1
+    fi
+fi
