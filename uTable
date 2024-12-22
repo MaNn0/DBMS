@@ -1,74 +1,73 @@
 #!/bin/bash
 
-# Check if the table name is passed as an argument
-if [[ -z "$1" || ! -e "$1" ]]; then
-    echo "Table does not exist or table name not provided."
+tableName="$1"
+metadataFile=".$tableName""_metadata"
+
+# Check if the table's metadata file exists
+if [[ ! -f "$metadataFile" ]]; then
+    echo "Error: Table '$tableName' does not exist."
     exit 1
 fi
 
-tableName="$1"  # Assign the table name from the argument
+# Get the size of the metadata file (number of lines)
+size=$(cat "$metadataFile" | wc -l)
 
-# Read the header (first line) to get the column names
-header=$(head -n 1 "$tableName")
-columns=($(echo "$header" | tr '|' '\n'))
+# Display first NR with $NF 
+awk -F ':' '
+NR == 1 {
+    for (i = 1; i <= NF; i++) {
+        print i ": " $i
+    }
+}' "$tableName"
 
-# Ask the user for the column name to search by
-read -p "Search by (column name): " searchColumn
 
-# Check if the column name exists in the header
-# columnIndex=-1
-flagIndex=0
-for i in "${!columns[@]}"; do
-    if [[ "${columns[$i]}" == "$searchColumn" ]]; then
-        columnIndex=$i
-        flagIndex=1
-        break
+read -p "Enter the column number to filter by: " colChoice ########################
+
+# Validate column number choice
+if [[ "$colChoice" -ge 1 && "$colChoice" -le "$size" ]]; then
+
+    # Prompt the user to provide the value to update
+    read -p "Enter the value to update in column $colChoice: " valueToUpdate ##############################
+    read -p "Enter the new value for column $colChoice: " newValue ##############################
+
+    # store row you want to update in array 
+    wantupdate=($(awk -F ':' -v col="$colChoice" -v value="$valueToUpdate" '
+    {
+    if (NR >1){
+        if ($col == value) {
+            print $0
+        }
+        }
+    }' "$tableName" ))
+
+    # Check if no values detected in table
+    if [[ ${#wantupdate[@]} -eq 0 ]]; then
+        echo "Not Available Values In Table"
+        exit 1
     fi
-done
 
-if [[ $flagIndex -eq 0 ]]; then
-    echo "Column '$searchColumn' does not exist."
-    exit 1
-fi
+    # Loop through array and update the column
+    counter=0
+    for line in "${wantupdate[@]}"
+    do
+        # Update the specific column value by replacing it with the new value   #colchoice inside ok $1 field 1 , 
+        updatedLine=$(echo "$line" | awk -F ':' -v col="$colChoice" -v newValue="$newValue" '{  
+            $col = newValue
+            OFS=":"          
+            $1=$1            #Re-apply OFS by forcing awk to re-evaluate the line
+            print $0
+        }')
+        
+        # Replace the old row with the updated row
+    
+        sed -i "s/$line/$updatedLine/" "$tableName"
+        ((counter++))
+    done
+    
+    echo "Rows with value '$valueToUpdate' in column $colChoice have been updated."
+    echo "$counter rows updated."
 
-# id|name
-# 10|abood
-# 2|hossam
-# 5|mano
-# 4|zalabany
-
-
-# Ask the user for the value to search for
-read -p "Enter value to search for: " searchValue
-
-# Perform the search by comparing the column value
-recordLine=$(awk -F'|' -v col="$((columnIndex + 1))" -v value="$searchValue" '$col == value { print $0 }' "$tableName")
-# ay arithmetic operation (()) ===== ay command expantion $() ===== ay comparison [[]] ===== ay if [ index aw ^(a-z) ]
-# ay array=($()) hyb2a array ===== ay $(value=arithmetic operation) 
-
-if [[ -z "$recordLine" ]]; then
-    echo "No record found with '$searchValue' in column '$searchColumn'."
 else
-    echo "Record found: $recordLine"
-
-    # Ask the user if they want to update this record
-    read -p "Do you want to update this record? (yes/no): " updateChoice
-    if [[ "$updateChoice" =~ ^(yes|y)$ ]]; then
-        # Split the record into fields
-        IFS='|' read -r -a fields <<< "$recordLine"
-        # Display the fields and allow the user to update
-        for i in "${!fields[@]}"; do
-            echo "Field ${columns[$i]}: ${fields[$i]}"
-            read -p "Enter new value for '${columns[$i]}' (leave empty to keep current value): " newValue
-            if [[ -n "$newValue" ]]; then
-                fields[$i]="$newValue"
-            fi
-        done
-
-        # Join the fields back into a record and update the table
-        updatedRecord=$(IFS='|'; echo "${fields[*]}")
-        sed -i "s/^$recordLine$/$updatedRecord/" "$tableName"
-
-        echo "Record updated successfully."
-    fi
+    echo "Error: Invalid column number selected."
+    exit 1
 fi

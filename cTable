@@ -1,9 +1,7 @@
 #!/bin/bash
 
 
-
 tableName="$1"
-
 
 read -p "Enter the number of columns: " columnCount
 
@@ -44,10 +42,10 @@ for ((i=1; i<=columnCount; i++))
         continue
     fi  
 
- #pk
+ #pk validate
  if $pkFlag 
  then
-    read -p "  Set as primary key? (yes/no): " isPrimaryKey
+    read -p "  Set first column as primary key? Only available in this column (yes/no): " isPrimaryKey
     if [[ "yes" =~ "$isPrimaryKey" ]]
     then
     row+=:PK
@@ -56,6 +54,7 @@ for ((i=1; i<=columnCount; i++))
         if [[ "no" =~ "$isPrimaryKey" ]]
         then
                echo $row >> .$tableName"_metadata"  
+               pkFlag=false #wont ask again
              continue
         else
             echo " invalid choice "
@@ -66,17 +65,16 @@ for ((i=1; i<=columnCount; i++))
     fi
 
     fi
-  echo $row >> .$tableName"_metadata"  
+  echo $row >> .$tableName"_metadata"   ##append in metadata 
  
 done
 
-#awk -F : '{ printf "%s : ",$1 }' .$tableName"_metadata" > $tableName  #%s format pritnf like in c
-while IFS=: read -r col _; do
+while IFS=: read -r col type pk ; do
     echo -n "$col:" >> $tableName
 done < .$tableName"_metadata"
-#sed -i 's/ : $//' $tableName
+
+
 sed -i 's/:*$//' $tableName #remove last :
 echo "" >> "$tableName" #when adding values in insert it skips first line
-#awk -F ':' '{print $1}' .$tableName"_metadata" | paste -sd'|' - > "$tableName"
 echo "Table '$tableName' created successfully with the following columns:"
  

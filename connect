@@ -1,10 +1,5 @@
 #!/bin/bash
 
-if [ -z "$1" ]; then
-    echo "No database name provided."
-    exit 1
-fi
-
 dbName="$1"
 cd $dbName
 echo "You are now connected to the database: $dbName"
@@ -17,36 +12,33 @@ while $exit; do
     select option in "list tables" "create table" "insert into table" "update table" "select from table" "delete record" "drop table" "exit database"; do
         case $option in
         "list tables")
-            if [[ -z "$(ls -p | grep -v /$)" ]]; then #ls -p | grep -v [-p directories with /] grev -v /$ remove eli a5ro / 
+            if [[ -z "$(ls -p | grep -v /$)" ]]
+            then #ls -p | grep -v [-p directories with /] grev -v /$ remove eli a5ro / 
                 echo "There are no tables in this database."
             else
                 echo "Tables in $dbName:"
                 ls 
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
             ;;
         "create table")
             read -p "Enter table name to create: " tableName
             if [[ -e "$tableName" ]]
             then
                 echo "Table In Database Already Exist"
-                echo
-                echo "Available Options"
-                break
                 else
                     if [[ "$tableName" =~ ^[0-9] || "$tableName" =~ [[:space:]] || -z "$tableName" ]]
                     then
                         echo "Table Name Can't Start With Numbers , Contain Spaces , Or Null"
-                        echo
-                        echo "Available Options"
-                        break
                     else
                         ../../cTable "$tableName"
-                         
                     fi
             fi
+                echo
+                echo "Available Options"
+                break
             ;;
         "insert into table")
             read -p "Enter table name to insert into: " tableName
@@ -55,23 +47,22 @@ while $exit; do
                 ../../insertTable "$tableName"
             else
                 echo "Table '$tableName' does not exist."
+            fi
                 echo
                 echo "Available Options"
                 break      
-            fi
             ;;
         "update table")
             read -p "Enter table name to update: " tableName
             if [[ -e "$tableName" ]]
             then
                 ../../uTable "$tableName" 
-                
             else
                 echo "Table '$tableName' does not exist."
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
             ;;  
         "select from table")
             read -p "Enter table name to select from: " tableName
@@ -80,22 +71,22 @@ while $exit; do
                 ../../selectFROM "$tableName" 
             else
                 echo "Table '$tableName' does not exist."
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
             ;;
         "delete record")
             read -p "Enter table name to delete record from: " tableName
             if [[ -e "$tableName" ]]
             then
-               echo "under development"       
+               ../../deleteColumn "$tableName"   
             else
                 echo "Table '$tableName' does not exist."
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
             ;;
         "drop table")
             read -p "Enter table name to remove: " tableName
@@ -107,14 +98,12 @@ while $exit; do
                     rm "$tableName"_metadata
                     fi
                 echo "Table '$tableName' removed successfully."
-                echo "Available Options"
-                break
             else
                 echo "Table '$tableName' does not exist."
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
             ;;
         "exit database")
             echo "Exiting database '$dbName' and returning to the main menu."
@@ -123,6 +112,9 @@ while $exit; do
             ;;
         *)
             echo "UNKNOWN OPTION"
+            echo
+            echo "Available Options"
+            break
             ;;
         esac
     done

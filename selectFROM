@@ -1,66 +1,52 @@
 #!/bin/bash
 
-# Check if table name is provided
-if [ -z "$1" ]; then
-    echo "Error: Table name not provided."
-    exit 1
-fi
-
 tableName="$1"
 metadataFile=".$tableName""_metadata"
 
 # Check if the table's metadata file exists
-if [[ ! -f "$metadataFile" ]]; then
+if [[ ! -f "$metadataFile" ]]
+then
     echo "Error: Table '$tableName' does not exist."
     exit 1
 fi
 
-# Read the table structure (metadata) into an array
-columns=()
-columnNames=()
-for line in $(cat "$metadataFile"); do
-    IFS=':' read -r colName colType colKey <<< "$line"
-    columns+=("$line")
-    columnNames+=("$colName")
-done
-
-# Show all columns with assigned numbers
-echo "Available columns:"
-for i in "${!columnNames[@]}"; do
-    echo "$((i+1)): ${columnNames[$i]}"
-done
-
+size=$(cat "$metadataFile" | wc -l) #size of file as lines
+#takes first row then print first field every loop[line]
+awk -F ':' '
+NR == 1 {
+    for (i = 1; i <= NF; i++) {
+        print i ": " $i
+    }
+}' "$tableName"
+ 
 # Prompt the user to select a column by its number
-read -p "Enter the column number to select or 0 to select all: " colChoice
+read -p "Enter the column number to select or * to select all: " colChoice
+if [[ $colChoice == "*" ]]
+then
+colChoice=0
+fi 
 
 # Function to display the selected column
 display_column() {
-    local columnIndex=$1
-    echo "Displaying values from column '${columnNames[$columnIndex]}':"
-    
-    # Read and print the values of the selected column
-    while IFS=":" read -r -a row; do
-        echo "${row[$columnIndex]}"
-    done < "$tableName"
-}
+    local columnIndex=$1 #0 #1 #colChoice
+    echo "Displaying values :" #columnNames[0] = id
+    echo                                                            #$1:$2:$3          # every loop in awk with every line #col choice sabet
+    awk -F ':' -v col="$columnIndex" '{ print $col }' "$tableName"  #2:mano:44  $1 >> 2 ,, $2 >> mano >> $3 >> 44 --- $0 all >> 2:mano:44
+} 
 
-# Show all columns if 0 is selected
-if [ "$colChoice" -eq 0 ]; then
-    echo "Displaying all columns:"
-    # Read and print all rows
-    while IFS=":" read -r -a row; do
-        for value in "${row[@]}"; do
-            echo -n "$value | "
-        done
-        echo
-    done < "$tableName"
-else
-    # Validate if the choice is valid
-    if [[ "$colChoice" -ge 1 && "$colChoice" -le ${#columns[@]} ]]; then
-        # Display the selected column
-        display_column $((colChoice - 1))
-    else
-        echo "Error: Invalid column number selected."
-        exit 1
+if [[ ! "$colChoice"  =~ ^[0-9]+$ && "$colChoice" != 0 ]] 
+then
+          echo "Error: Invalid column number"
+          exit 1
     fi
+
+ if [[ "$colChoice" -ge 1  && "$colChoice" -le "$size" ]]  #||"$colChoice" -eq 0 # || "$colChoice" == 0 
+    then 
+        # Display the selected colun
+        display_column $((colChoice))
+    else
+        
+        echo "Error: Invalid column number Out Of Size "
+        exit 1
 fi
+

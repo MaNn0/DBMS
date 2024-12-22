@@ -1,11 +1,5 @@
 #!/bin/bash
 
-# Check if table name is provided
-if [ -z "$1" ]; then
-    echo "Error: Table name not provided."
-    exit 1
-fi
-
 tableName="$1"
 metadataFile=".$tableName""_metadata"
 
@@ -15,71 +9,58 @@ if [[ ! -f "$metadataFile" ]]; then
     exit 1
 fi
 
-# Read the table structure (metadata) into an array
-columns=()
-columnNames=()
-for line in $(cat "$metadataFile"); do
-    IFS=':' read -r colName colType colKey <<< "$line"
-    columns+=("$line")
-    columnNames+=("$colName")
-done
+# Get the size of the metadata file (number of lines)
+size=$(cat "$metadataFile" | wc -l)
 
-# Show all columns with assigned numbers
-echo "Available columns:"
-for i in "${!columnNames[@]}"; do
-    echo "$((i+1)): ${columnNames[$i]}"
-done
+# Display first NR with $NF 
+awk -F ':' '
+NR == 1 {
+    for (i = 1; i <= NF; i++) {
+        print i ": " $i
+    }
+}' "$tableName"
 
-# Prompt the user to select a column to delete
-read -p "Enter the column number to delete from or 0 to delete all column values: " colChoice
 
-# Function to delete values from the selected column
-delete_column_values() {
-    local columnIndex=$1
-    echo "Deleting values from column '${columnNames[$columnIndex]}':"
+read -p "Enter the column number to filter by: " colChoice ########################
 
-    # Show the available values in the selected column
-    echo "Available values in column '${columnNames[$columnIndex]}':"
-    awk -F":" -v colIndex=$((columnIndex+1)) '{ print $colIndex }' "$tableName" | sort | uniq
+# Validate column number choice
+if [[ "$colChoice" -ge 1 && "$colChoice" -le "$size" ]]; then
 
-    # Ask for value to delete from selected column or delete all values
-    read -p "Enter value to delete or press enter to delete all values: " valueToDelete
+            # Prompt the user to provide the value to delete
+        read -p "Enter the value to delete from column $colChoice: " valueToDelete ##############################
 
-    # If value is provided, check if it's valid
-    if [ -n "$valueToDelete" ]; then
-        # Check if the value exists in the selected column
-        if ! awk -F":" -v colIndex=$((columnIndex+1)) -v value="$valueToDelete" '{ if($colIndex == value) print $0 }' "$tableName" | grep -q .; then
-            echo "Error: Value '$valueToDelete' does not exist in column '${columnNames[$columnIndex]}'."
-            exit 1
-        fi
+        # store row you want to delete in array 
+        wantdelete=($(awk -F ':' -v col="$colChoice" -v value="$valueToDelete" '
+        {
+            if (NR>1)
+            {
+            if ($col == value) {
+                print $0
+            }
+            }
+      
+        }' "$tableName" ))
 
-        echo "Deleting rows where column '${columnNames[$columnIndex]}' contains '$valueToDelete'."
-        # Delete rows where the selected column contains the value
-        awk -F":" -v colIndex=$((columnIndex+1)) -v value="$valueToDelete" '{ if($colIndex != value) print $0 }' OFS=":" "$tableName" > temp.txt
-        mv temp.txt "$tableName"
-    else
-        # If no value is provided, delete all rows in the selected column
-        echo "Deleting all values in column '${columnNames[$columnIndex]}'."
-        # Set the value of the specified column to empty for all rows
-        awk -F":" -v colIndex=$((columnIndex+1)) '{ $colIndex=""; print $0 }' OFS=":" "$tableName" > temp.txt
-        mv temp.txt "$tableName"
-    fi
-
-    echo "Deletion complete."
-}
-
-# Delete all values from all columns if 0 is selected
-if [ "$colChoice" -eq 0 ]; then
-    echo "Deleting all column values..."
-    > "$tableName"  # Clear the table (delete all rows)
-    echo "All values deleted."
-else
-    # Validate if the choice is valid
-    if [[ "$colChoice" -ge 1 && "$colChoice" -le ${#columns[@]} ]]; then
-        # Delete values from the selected column
-        delete_column_values $((colChoice - 1))
+        
+                                        
+      #check values existance
+       if [[ ${#wantdelete[@]} -eq 0 ]]  #echo "${#wantdelete[@]}"  size , length
+       then
+         echo "Not Available Values In Table"
+         exit 1
+       fi
+       
+        #loop through array and sed /d [delete from table]
+        counter=0
+        for line in ${wantdelete[@]} 
+        do
+         sed -i "/$line/d" "$tableName" 
+        ((counter++))
+        done
+        echo "all rows contain value '$valueToDelete' in column $colChoice deleted."
+        echo "$counter rows removed"
     else
         echo "Error: Invalid column number selected."
         exit 1
-    fi
 fi
+

@@ -14,7 +14,7 @@ if [[ ! -f "$metadataFile" ]]; then
     exit 1
 fi
 
- # Read the table structure (metadata) into an array
+ #STORE METADATA INTO COULMNS ARRY 
 columns=()
 for line in $(cat "$metadataFile"); do #id:int:PK   #name:str
     echo $line
@@ -47,11 +47,7 @@ do #id name age
             continue
         fi
 
-# if grep -q "apple" fruits.txt; then
-#     echo "Apple is in the list!"
-# else
-#     echo "Apple is not in the list."
-# fi
+
         # Validate PK
         if [[ "$colKey" == "PK" ]]
         then            #^hossam: first field pk must be first col in creating
@@ -76,8 +72,8 @@ do
     output+="$value:" #add to output col1:col2:col3:
 done
 
-# Remove trailing pipe symbol
-#utput="${output%|}" other way 
+
+
 output=$( echo "$output" | sed 's/:$//' ) #removes last :
 
 # Append the record to the table file

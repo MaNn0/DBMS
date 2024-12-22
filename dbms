@@ -11,11 +11,10 @@ echo "--- Welcome To DBMS ---"
 echo
 
 exit=true
-COLUMNS=1 #more readable in terminal 
+COLUMNS=1 #more readable in terminal put in coulmns 
 while $exit;
     do
     select name in "create database" "remove database" "list database" "connect to a database" "exit"; 
-    
     do
         case $name in
         "create database")
@@ -24,7 +23,6 @@ while $exit;
                  if [[ -e "$dbName" ]]
                     then
                         echo "Database exist"
-                        break
                     else
                        if [[ "$dbName" =~ ^[a-zA-Z][a-zA-Z0-9_]*$ ]] #mix letters #starts with letters , ends with zero or more of [a-zA-Z0-9] _ after  9 allows db_1 '_'
                         then 
@@ -34,8 +32,9 @@ while $exit;
                             echo "Invalid Database Name 'Cannot Start With Numbers Or Contain Spaces' or Special Char "
                         fi
                 fi
-               
-          
+                echo
+                echo "Available Options"
+                break
         ;;
         "remove database")
             read -p "Enter database name to delete: " dbName
@@ -43,26 +42,24 @@ while $exit;
             then
                 rm -r $dbName
                 echo "Database '$dbName' Removed Successfully "
-                echo
-                echo "Available Options"
-                break
             else
                 echo "Database doesn't exist or not valid"
+            fi
                 echo
                 echo "Available Options"
                 break
-            fi
         ;;
-       
         "list database")
-            if [[ -z "$(ls -d1 */ 2>/dev/null )" ]]; 
+            if [[ -z "$(ls -p | grep  /$ | sed 's:/$::' )" ]]; 
             then 
+            echo
             echo "EmptyDatabase"
             else
-            ls -d1 */ | sed 's:/$::' #ls -d list current dirc takes argument  */ wild card
+            echo 
+            ls -p | grep  /$ | sed 's:/$::' #ls -d list current dirc takes argument  */ wild card
+            fi
             echo
             echo "Available Options"
-            fi
             break
         ;;
         "connect to a database")
@@ -73,23 +70,27 @@ while $exit;
                 ../connect "$dbName"
             else
                 echo "There is no database with this name"
-                echo 
-                echo "Available Options"
-                break
             fi
+                echo 
+                echo "Available Options "
+                break
         ;;
         "exit")
                 read -p "Are you Sure You Want To Exit ? (yes/no)" answer
                 if [[ "yes" =~ $answer ]]
                 then
                     exit=false
-                    break
-                else
-                    break
                 fi
+
+                echo
+                echo "Available Options"
+                break
         ;;
         *)
             echo "Unkown Value"
+            echo 
+                echo "Available Options"
+                break
         esac
 
     done
